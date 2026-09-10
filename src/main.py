@@ -98,6 +98,9 @@ def _wrap(text: str, width: int = 90, prefix: str = "      ") -> list:
     return lines
 
 
+
+
+
 def print_results(result: PipelineResult, target_date: date):
     """Print full analysis results to console"""
     line = "=" * 96
@@ -140,16 +143,22 @@ def print_results(result: PipelineResult, target_date: date):
         o1 = f"{odds.best_odds_home:.2f}" if odds else "  n/a"
         o2 = f"{odds.best_odds_away:.2f}" if odds else "  n/a"
         
-        # Determine signal
+        # Determine signal: arrow on the PICKED side's model %, edge aside.
+        # Unambiguous without truncating anyone's name (see PUNTARE SU below).
+        sig1 = f"{pred.p1_win_prob*100:6.1f}%"
+        sig2 = f"{pred.p2_win_prob*100:6.1f}%"
         signal = "      -"
         for d in result.decisions:
             if d.value_bet.match_id == m.id:
-                side = "P1" if d.value_bet.side == "player1" else "P2"
-                signal = f"  DEC {side} ({d.value_bet.edge*100:+.1f}%)"
+                if d.value_bet.side == "player1":
+                    sig1 = f"►{pred.p1_win_prob*100:5.1f}%"
+                else:
+                    sig2 = f"►{pred.p2_win_prob*100:5.1f}%"
+                signal = f"  ({d.value_bet.edge*100:+.0f}%)"
                 break
-        
+
         print(f"  {m.match_key[:33]:<34} {tier:>4} "
-              f"{pred.p1_win_prob*100:7.1f}% {pred.p2_win_prob*100:7.1f}% "
+              f"{sig1:>8} {sig2:>8} "
               f"{mkt1:>7} {mkt2:>7} {o1:>6} {o2:>6} {signal}")
     
     print()
@@ -158,22 +167,23 @@ def print_results(result: PipelineResult, target_date: date):
     if result.decisions:
         print(f"  {'DECISIONI FINALI':-^92}")
         print()
-        print(f"  {'#':<3} {'Match':<32} {'Scelta':<20} {'Quota':>6} "
-              f"{'Book':<12} {'Edge':>7} {'Tier':>4} {'Sisal':>5}")
+        print(f"  {'#':<3} {'Match':<28} {'PUNTARE SU':<24} {'Quota':>6} "
+              f"{'Book':<10} {'Edge':>7} {'Tier':>4} {'Sisal':>5}")
         print("  " + "-" * 92)
 
         for d in result.decisions:
             vb = d.value_bet
             tier = vb.tier.value if hasattr(vb.tier, 'value') else vb.tier
-            print(f"  {d.rank:<3} {vb.match_key[:31]:<32} {vb.player_name[:19]:<20} "
-                  f"{vb.odds:>6.2f} {d.bookmaker[:11]:<12} "
+            print(f"  {d.rank:<3} {vb.match_key[:27]:<28} {vb.player_name[:23]:<24} "
+                  f"{vb.odds:>6.2f} {d.bookmaker[:9]:<10} "
                   f"{vb.edge*100:>+6.1f}% {tier:>4} {d.sisal:>5}")
 
         print()
         print("  PERCHE' (dati veritieri: storico + news + mercato):")
         for d in result.decisions:
             vb = d.value_bet
-            print(f"  [{d.rank}] {vb.player_name} ({vb.match_key})")
+            print(f"  [{d.rank}] PUNTARE SU {vb.player_name} @ {vb.odds:.2f} "
+                  f"({d.bookmaker}) - {vb.match_key}")
             for line in _wrap(d.reason):
                 print(line)
         print()
