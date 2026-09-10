@@ -1,0 +1,153 @@
+# TennisPreview Configuration
+app:
+  name: "TennisPreview"
+  version: "1.0.0"
+  log_level: "INFO"
+  log_dir: "logs"
+  data_dir: "data/cache"
+  output_dir: "output"
+
+# API Keys (set via environment variables or .env)
+apis:
+  theoddsapi:
+    base_url: "https://api.the-odds-api.com/v4"
+    sports_key: "tennis"
+    markets: ["h2h", "spreads", "totals"]
+    bookmakers: ["pinnacle", "betfair", "bet365", "williamhill", "unibet"]
+    timeout: 30
+    rate_limit: 500
+  
+  api_football:
+    base_url: "https://v3.football.api-sports.io"
+    sport_id: 2
+    timeout: 30
+    rate_limit: 100
+  
+  betfair:
+    base_url: "https://api.betfair.com/exchange/betting"
+    app_key: ""
+    session_token: ""
+    delay_ms: 1000
+
+tennis:
+  enabled: true
+  
+  tiers:
+    tier_1:
+      tournaments: ["GS", "MS1000", "ATP500", "ATP250", "WTA1000", "WTA500", "WTA250", "Olympics"]
+      min_matches_player: 20
+      min_edge: 0.025
+      min_prob: 0.10
+      max_odds: 4.0
+      kelly_fraction: 0.25
+    
+    tier_2:
+      tournaments: ["CH175", "CH125", "CH100", "CH75", "CH50", "WTA125"]
+      min_matches_player: 15
+      min_edge: 0.035
+      min_prob: 0.12
+      max_odds: 3.5
+      kelly_fraction: 0.18
+    
+    tier_3:
+      tournaments: ["CH25", "ITF_W100", "ITF_W75", "ITF_M25", "ITF_M15"]
+      min_matches_player: 10
+      min_edge: 0.050
+      min_prob: 0.15
+      max_odds: 3.0
+      kelly_fraction: 0.10
+    
+    tier_4:
+      tournaments: ["ITF_W50", "ITF_W35", "ITF_W15", "Qualies", "Junior", "Exhibition"]
+      action: "monitor_only"
+      min_edge: 0.000
+      kelly_fraction: 0.00
+
+  models:
+    retrain_frequency: "daily"
+    calibration_window: 500
+    min_calibration_samples: 200
+    ensemble_weights_tier1:
+      bradley_terry_surface: 0.30
+      glicko2_surface: 0.25
+      serve_return_xgb: 0.25
+      elo_form: 0.10
+      # 0.10 -> 0.20 dopo backtest: sweep peso mercato (USO25+AO26 ATP,
+      # Brier .191->.187 / .153->.151 a k=2, monotono fino a k=3 ma con
+      # ritorni decrescenti; oltre il mercato domina e il modello non
+      # troverebbe piu' divergenze). Tier2/3 invariati (senza evidenza).
+      market_implied: 0.20
+      # Sentiment Polymarket (crowd, senza vig): peso euristico prudente,
+      # fuso post-calibrazione come il mercato. Non validato su storico
+      # (servirebbe price history archiviata) -> tenere basso.
+      polymarket: 0.15
+    ensemble_weights_tier2:
+      bradley_terry_surface: 0.35
+      glicko2_surface: 0.30
+      basic_xgb: 0.20
+      market_implied: 0.15
+      polymarket: 0.10
+    ensemble_weights_tier3:
+      surface_win_pct_logistic: 0.40
+      h2h_logistic: 0.20
+      market_implied: 0.40
+      polymarket: 0.10
+
+  odds:
+    sources_priority:
+      pinnacle: 1.0
+      betfair_ex: 0.95
+      polymarket: 0.90
+      bet365: 0.85
+      api_football: 0.75
+      theoddsapi: 0.70
+      betexplorer_best: 0.65
+      flashscore: 0.60
+      scraped_other: 0.40
+    staleness_threshold_min: 15
+    clv_benchmark: "pinnacle_closing"
+    steam_threshold_pct: 0.02
+    steam_window_min: 10
+
+  betting:
+    max_bets_per_tournament_day: 3
+    max_bets_per_player_week: 2
+    min_clv: 0.01
+
+data_sources:
+  sackmann:
+    enabled: true
+    atp_repo: "https://github.com/JeffSackmann/tennis_atp.git"
+    wta_repo: "https://github.com/JeffSackmann/tennis_wta.git"
+    local_path: "data/sackmann"
+    update_frequency_days: 7
+  
+  tennis_data_co_uk:
+    enabled: true
+    base_url: "http://www.tennis-data.co.uk"
+    download_dir: "data/tennis_data_co_uk"
+  
+  atp_wta_official:
+    enabled: true
+    atp_base: "https://www.atptour.com"
+    wta_base: "https://www.wtatennis.com"
+    rate_limit: 30
+  
+  flashscore:
+    enabled: true
+    base_url: "https://www.flashscore.com"
+    rate_limit: 30
+
+risk:
+  max_daily_exposure: 0.05
+  max_weekly_exposure: 0.15
+  max_bet_per_match: 0.02
+  max_bets_per_day: 10
+  daily_stop_loss: 0.03
+  weekly_stop_loss: 0.10
+  correlation_limit: 0.7
+
+scheduler:
+  daily_run_time: "08:00"
+  update_odds_interval_min: 15
+  cleanup_old_cache_days: 30

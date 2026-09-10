@@ -1,0 +1,17 @@
+# Dati locali (riscaricati/aggiornati dal bot: Sackmann, cache, recent)
+data/
+# Output e log di esecuzione
+output/
+logs/
+# Segreti locali (API key) - MAI committare, usare .env.example come modello
+.env
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+# DB locali
+*.db
+# Sistema
+.DS_Store
