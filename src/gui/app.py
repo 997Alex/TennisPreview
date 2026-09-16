@@ -109,16 +109,20 @@ async def analyze_single_match(pipeline: TennisDailyPipeline, p1: str, p2: str) 
 
 
 def run_analysis(pipeline: TennisDailyPipeline, p1: str, p2: str) -> Dict:
-    """Run async analysis safely inside Streamlit context."""
-    try:
+    """Run async analysis safely inside Streamlit context using a thread."""
+    import concurrent.futures
+    import threading
+
+    def _run():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         result = loop.run_until_complete(analyze_single_match(pipeline, p1, p2))
         loop.close()
         return result
-    except RuntimeError:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(analyze_single_match(pipeline, p1, p2))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(_run)
+        return future.result(timeout=120)
 
 
 def main():
@@ -294,12 +298,19 @@ def main():
                                    text=f"Analisi: {p1} vs {p2}...")
 
             with st.spinner(f"⚡ Analisi {p1} vs {p2}..."):
-                result = run_analysis(st.session_state.pipeline, p1, p2)
-                st.session_state.results.append({
-                    "p1": p1,
-                    "p2": p2,
-                    "result": result
-                })
+                try:
+                    result = run_analysis(st.session_state.pipeline, p1, p2)
+                    st.session_state.results.append({
+                        "p1": p1,
+                        "p2": p2,
+                        "result": result
+                    })
+                except Exception as e:
+                    st.error(f"Errore analisi {p1} vs {p2}: {e}")
+                    logger.error(f"Analysis failed: {e}", exc_info=True)
+                    import traceback
+                    traceback.print_exc()
+                    continue
 
         progress_bar.progress(1.0, text="Analisi completata! ✅")
         st.session_state.loading = False
