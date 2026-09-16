@@ -48,6 +48,7 @@ venv\Scripts\python.exe -m playwright install chromium
 copy .env.example .env
 run.bat --demo --no-progress   :: verifica installazione
 run.bat --no-progress          :: palinsesto del giorno (live)
+run.bat --gui                  :: interfaccia grafica analisi singolo match
 ```
 
 ## Fonti dati live (gratis, senza chiave)
@@ -105,6 +106,23 @@ BETFAIR_APP_KEY=your_key       # https://developer.betfair.com/
 
 # Disable progress bars
 ./run.sh --no-progress
+
+# Launch GUI for single match analysis
+./run.sh --gui
+```
+
+### GUI Mode
+
+The GUI provides a graphical interface for single-match analysis:
+1. Enter player names (Giocatore 1 vs Giocatore 2)
+2. Click **Analizza Match**
+3. View results in two tabs:
+   - **Risultati**: Win probability, odds, Polymarket sentiment, Sisal coverage
+   - **Dettaglio**: Full analysis including H2H, news impact, surface Elo, form, serve/return ratings, and value bet reasoning
+
+```bat
+:: Windows GUI mode
+run.bat --gui
 ```
 
 > The program outputs **decisions only** (who is value + why): no paper money,

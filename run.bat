@@ -39,7 +39,7 @@ if not exist ".env" (
 )
 
 echo [INFO] Avvio pipeline TennisPreview (palinsesto Sisal del giorno)...
-echo [INFO] Uso: run.bat [--demo] [--date YYYY-MM-DD] [--days N] [--no-progress]
+echo [INFO] Uso: run.bat [--demo] [--date YYYY-MM-DD] [--days N] [--no-progress] [--gui]
 echo.
 %PYTHON% -m src.main %*
 

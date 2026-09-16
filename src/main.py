@@ -10,12 +10,14 @@ probability estimates plus potential value bets for every event.
 import asyncio
 import argparse
 import sys
+import tkinter as tk
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from src.utils.config import config
 from src.utils.logging import setup_logging, get_logger, progress
 from src.pipeline.daily import TennisDailyPipeline, PipelineResult
+from src.gui.match_analyzer import MatchAnalyzerApp
 
 logger = get_logger("main")
 
@@ -79,6 +81,12 @@ and handles no paper money.
         '--no-progress',
         action='store_true',
         help='Disable progress bars'
+    )
+    
+    parser.add_argument(
+        '--gui',
+        action='store_true',
+        help='Launch GUI interface for single match analysis'
     )
 
     return parser.parse_args()
@@ -285,6 +293,13 @@ async def main():
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
+
+    # GUI mode
+    if args.gui:
+        root = tk.Tk()
+        app = MatchAnalyzerApp(root)
+        root.mainloop()
+        return
 
     # Setup logging
     setup_logging(log_level=args.log_level)
