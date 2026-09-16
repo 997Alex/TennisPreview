@@ -108,6 +108,19 @@ async def analyze_single_match(pipeline: TennisDailyPipeline, p1: str, p2: str) 
     return result
 
 
+def run_analysis(pipeline: TennisDailyPipeline, p1: str, p2: str) -> Dict:
+    """Run async analysis safely inside Streamlit context."""
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(analyze_single_match(pipeline, p1, p2))
+        loop.close()
+        return result
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(analyze_single_match(pipeline, p1, p2))
+
+
 def main():
     """Streamlit app main function."""
     st.set_page_config(
@@ -270,26 +283,24 @@ def main():
     # Run analysis
     if st.session_state.loading and st.session_state.pipeline:
         valid_matches = [m for m in st.session_state.matches if m.get("p1") and m.get("p2")]
-        
+
         progress_bar = st.progress(0, text="Analisi in corso...")
-        
+
         for idx, match in enumerate(valid_matches):
             p1 = match["p1"]
             p2 = match["p2"]
-            
-            progress_bar.progress((idx + 1) / len(valid_matches), 
+
+            progress_bar.progress((idx + 1) / len(valid_matches),
                                    text=f"Analisi: {p1} vs {p2}...")
-            
+
             with st.spinner(f"⚡ Analisi {p1} vs {p2}..."):
-                result = asyncio.run(
-                    analyze_single_match(st.session_state.pipeline, p1, p2)
-                )
+                result = run_analysis(st.session_state.pipeline, p1, p2)
                 st.session_state.results.append({
                     "p1": p1,
                     "p2": p2,
                     "result": result
                 })
-        
+
         progress_bar.progress(1.0, text="Analisi completata! ✅")
         st.session_state.loading = False
         st.rerun()
