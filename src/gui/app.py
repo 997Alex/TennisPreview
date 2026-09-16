@@ -238,6 +238,8 @@ def main():
                 if st.button("➕", key=f"add_{i}"):
                     st.session_state.matches.append({"p1": "", "p2": ""})
                     st.rerun()
+        st.session_state.matches[i]["p1"] = p1
+        st.session_state.matches[i]["p2"] = p2
 
     # Analyze button
     st.divider()
