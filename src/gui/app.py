@@ -32,6 +32,7 @@ def init_pipeline():
 
 
 async def analyze_single_match(pipeline: TennisDailyPipeline, p1: str, p2: str) -> Dict:
+    await pipeline._load_historical_data()
     result = PipelineResult()
     result.demo_mode = False
     result.demo_odds = False
