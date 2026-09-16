@@ -1,16 +1,19 @@
 """Streamlit GUI for TennisPreview multi-match analysis."""
 import asyncio
 import sys
+from pathlib import Path
 from datetime import date
 from typing import Optional, Dict, List
+
+# Add project root to path BEFORE any imports
+_project_root = str(Path(__file__).resolve().parent.parent.parent)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
-
-# Add project to path
-sys.path.insert(0, str(sys.path[0]))
 
 from src.utils.logging import setup_logging, get_logger
 from src.utils.config import config

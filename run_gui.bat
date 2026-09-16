@@ -2,6 +2,7 @@
 title TennisPreview GUI
 color 0A
 cd /d "%~dp0"
+set PYTHONPATH=%~dp0
 
 echo ============================================================
 echo   TennisPreview v1.0.0 - Interfaccia Grafica
