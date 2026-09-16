@@ -47,8 +47,8 @@ async def analyze_single_match(pipeline: TennisDailyPipeline, p1: str, p2: str) 
     match = TennisMatch(
         id=match_key,
         match_key=match_key,
-        player1=Player(name=p1),
-        player2=Player(name=p2),
+        player1=Player(id=f"p1_{p1}", name=p1),
+        player2=Player(id=f"p2_{p2}", name=p2),
         tournament="Analisi Singola",
         level="UNKNOWN",
         surface="Hard",
