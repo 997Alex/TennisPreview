@@ -1,3 +1,3 @@
-from src.gui.match_analyzer import MatchAnalyzerApp
+from src.gui.app import main as run_gui
 
-__all__ = ["MatchAnalyzerApp"]
+__all__ = ["run_gui"]

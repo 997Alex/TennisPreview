@@ -10,14 +10,9 @@ probability estimates plus potential value bets for every event.
 import asyncio
 import argparse
 import sys
-import tkinter as tk
+import subprocess
 from datetime import date, datetime, timedelta
 from pathlib import Path
-
-from src.utils.config import config
-from src.utils.logging import setup_logging, get_logger, progress
-from src.pipeline.daily import TennisDailyPipeline, PipelineResult
-from src.gui.match_analyzer import MatchAnalyzerApp
 
 logger = get_logger("main")
 
@@ -294,11 +289,13 @@ async def main():
     except Exception:
         pass
 
-    # GUI mode
+    # GUI mode - launch Streamlit app
     if args.gui:
-        root = tk.Tk()
-        app = MatchAnalyzerApp(root)
-        root.mainloop()
+        subprocess.Popen(
+            [sys.executable, "-m", "streamlit", "run", "src/gui/app.py",
+             "--server.port", "8501", "--server.headless", "true"],
+            cwd=str(Path(__file__).parent.parent),
+        )
         return
 
     # Setup logging

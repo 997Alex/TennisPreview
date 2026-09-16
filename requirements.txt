@@ -42,3 +42,8 @@ ruff>=0.1
 mypy>=1.7
 pre-commit>=3.6
 black>=23.0
+
+# GUI
+streamlit>=1.30
+plotly>=5.18
+pillow>=10.0

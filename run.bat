@@ -20,9 +20,9 @@ if exist "venv\Scripts\python.exe" (
 )
 
 REM Verifica dipendenze principali, installa se mancano
-%PYTHON% -c "import pandas, numpy, loguru, feedparser, tqdm, yaml, dotenv, aiohttp" 2>nul
+%PYTHON% -c "import pandas, numpy, loguru, feedparser, tqdm, yaml, dotenv, aiohttp, streamlit, plotly" 2>nul
 if errorlevel 1 (
-    echo [INFO] Installazione dipendenze...
+    echo [INFO] Installazione dipendenze (incluse streamlit, plotly)...
     if exist "venv\Scripts\pip.exe" (
         venv\Scripts\pip.exe install -r requirements.txt
     ) else (
