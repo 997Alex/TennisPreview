@@ -2,7 +2,7 @@
 import asyncio
 import sys
 from pathlib import Path
-from datetime import date
+from datetime import datetime
 from typing import Optional, Dict, List
 
 # Add project root to path BEFORE any imports
@@ -18,6 +18,7 @@ import pandas as pd
 from src.utils.logging import setup_logging, get_logger
 from src.utils.config import config
 from src.pipeline.daily import TennisDailyPipeline, PipelineResult, TennisMatch, Player
+from src.utils.models import TournamentLevel, Surface
 from src.data.merge.odds_merger import OddsMerger
 from src.betting.value_detector import explain_value_bet
 
@@ -29,6 +30,9 @@ def init_pipeline():
     setup_logging(log_level="WARNING")
     config.load()
     pipeline = TennisDailyPipeline(demo_mode=False)
+    # Disable tqdm progress bars for Streamlit compatibility
+    from src.utils.logging import progress
+    progress.set_enabled(False)
     return pipeline
 
 
@@ -38,41 +42,41 @@ async def analyze_single_match(pipeline: TennisDailyPipeline, p1: str, p2: str) 
     result.demo_mode = False
     result.demo_odds = False
 
-    # Load historical data if not already loaded
-    if not pipeline.historical_matches:
-        await pipeline._load_historical_data()
+    # Skip heavy historical data loading for quick GUI analysis
+    # Pipeline will use default/empty profiles for new players
+    # if not pipeline.historical_matches:
+    #     await pipeline._load_historical_data(recent_years=1)
 
     # Create synthetic match
     match_key = f"{p1} vs {p2}"
     match = TennisMatch(
         id=match_key,
-        match_key=match_key,
+        tournament="Analisi Singola",
+        tournament_level=TournamentLevel.UNKNOWN,
+        surface=Surface.HARD,
+        round="",
+        scheduled_time=datetime.now(),
         player1=Player(id=f"p1_{p1}", name=p1),
         player2=Player(id=f"p2_{p2}", name=p2),
-        tournament="Analisi Singola",
-        level="UNKNOWN",
-        surface="Hard",
-        round="",
-        date=date.today(),
     )
     result.matches = [match]
 
     # Get Sisal coverage
     result.sisal_flag = {match.id: pipeline._sisal_presence(match)}
 
-    # Get odds
+    # Get odds (async)
     odds_dict = await pipeline._get_odds_for_matches([match], demo=False)
     result.odds = odds_dict
 
-    # Get Polymarket sentiment
+    # Get Polymarket sentiment (sync)
     poly_dict = pipeline._get_poly_sentiment([match], demo=False)
     result.poly = poly_dict
 
-    # Get news impact
+    # Get news impact (sync)
     news_impact = pipeline._get_news_impact([match])
     result.news = news_impact
 
-    # Build features
+    # Build features (sync)
     features_dict = pipeline._build_features([match], odds_dict, news_impact, poly_dict)
     result.features = features_dict
 
